@@ -3,7 +3,7 @@
   <h1>𝐕𝐌𝐀𝐈𝐋.𝐃𝐄𝐕</h1>
   <p><a href="/docs/github-action-tutorial.md">部署教程...</a>  ·  
   <a href="https://vmail.dev/api-docs" target="_blank">API 文档</a> · <a href="https://discord.gg/d68kWCBDEs">Discord</a> · <a href="https://github.com/oiov/vmail/blob/main/README_en.md">English</a> | 简体中文</p>
-  <p>使用 Cloudflare Email Worker 实现的临时电子邮件服务</p>
+  <p>使用 Cloudflare Email Worker 实现的临时电子邮件服务.</p>
 </div>
 
 ## 🌈 特点
@@ -139,3 +139,4 @@ GNU General Public License v3.0
 
 
 [![Star History Chart](https://api.star-history.com/svg?repos=oiov/vmail&type=Date)](https://star-history.com/#oiov/vmail&Date)
+
