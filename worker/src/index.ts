@@ -23,6 +23,8 @@ export interface Env {
   COOKIES_SECRET: string;
   TURNSTILE_KEY: string;
   TURNSTILE_SECRET: string;
+  API_KEY_CREATION_ENABLED?: string;
+  INTERNAL_API_KEY?: string;
 }
 
 // 初始化 Hono 应用
@@ -107,51 +109,57 @@ function generateApiKey(): string {
 }
 
 // 创建 API Key 接口（需要 Turnstile 验证）
-api.post('/api-keys', turnstile, async (c) => {
-  const db = getD1DB(c.env.DB);
-  const body = c.get('parsedBody') as { name?: string };
-
-  const now = new Date();
-  const apiKey = generateApiKey();
-  const keyPrefix = apiKey.substring(0, 12) + '...';
-
-  const newApiKey = {
-    id: nanoid(),
-    key: apiKey,
-    keyPrefix: keyPrefix,
-    name: body?.name || null,
-    rateLimit: 100,
-    isActive: true,
-    lastUsedAt: null,
-    expiresAt: null,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  try {
-    await insertApiKey(db, newApiKey);
-    // 增加 API Key 创建计数
-    await incrementApiKeysCreated(db);
-    // 只返回一次完整的 API Key，之后无法再获取
-    return c.json({
-      data: {
-        id: newApiKey.id,
-        key: apiKey,  // 完整的 API Key，只展示这一次
-        keyPrefix: keyPrefix,
-        name: newApiKey.name,
-        createdAt: now.toISOString(),
-      },
-      message: 'API Key created successfully. Please save it now, it will not be shown again!'
-    }, 201);
-  } catch (e: any) {
-    console.error('Create API Key error:', e);
-    return c.json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: 'Failed to create API Key',
-      }
-    }, 500);
+api.post('/api-keys', async (c) => {
+  if (c.env.API_KEY_CREATION_ENABLED !== 'true') {
+    return c.json({ message: 'API Key creation is disabled' }, 403);
   }
+
+  return turnstile(c, async () => {
+    const db = getD1DB(c.env.DB);
+    const body = c.get('parsedBody') as { name?: string };
+
+    const now = new Date();
+    const apiKey = generateApiKey();
+    const keyPrefix = apiKey.substring(0, 12) + '...';
+
+    const newApiKey = {
+      id: nanoid(),
+      key: apiKey,
+      keyPrefix: keyPrefix,
+      name: body?.name || null,
+      rateLimit: 100,
+      isActive: true,
+      lastUsedAt: null,
+      expiresAt: null,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    try {
+      await insertApiKey(db, newApiKey);
+      // 增加 API Key 创建计数
+      await incrementApiKeysCreated(db);
+      // 只返回一次完整的 API Key，之后无法再获取
+      return c.json({
+        data: {
+          id: newApiKey.id,
+          key: apiKey,  // 完整的 API Key，只展示这一次
+          keyPrefix: keyPrefix,
+          name: newApiKey.name,
+          createdAt: now.toISOString(),
+        },
+        message: 'API Key created successfully. Please save it now, it will not be shown again!'
+      }, 201);
+    } catch (e: any) {
+      console.error('Create API Key error:', e);
+      return c.json({
+        error: {
+          code: 'INTERNAL_ERROR',
+          message: 'Failed to create API Key',
+        }
+      }, 500);
+    }
+  });
 });
 
 // fix: 移除获取邮件列表接口的 turnstile 验证。
@@ -246,6 +254,7 @@ app.get('/config', (c) => {
     emailDomain: emailDomain, // 返回域名数组
     turnstileKey: c.env.TURNSTILE_KEY,
     cookiesSecret: c.env.COOKIES_SECRET,
+    apiKeyCreationEnabled: c.env.API_KEY_CREATION_ENABLED === 'true',
   });
 });
 

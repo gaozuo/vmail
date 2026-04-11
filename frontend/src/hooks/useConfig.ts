@@ -6,6 +6,7 @@ export interface AppConfig {
   turnstileKey: string;
   // feat: 添加 cookiesSecret 到配置中，以便前端加密时使用
   cookiesSecret: string;
+  apiKeyCreationEnabled: boolean;
 }
 
 // 创建 React Context

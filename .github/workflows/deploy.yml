@@ -69,6 +69,7 @@ jobs:
           sed -i "s#\${COOKIES_SECRET}#${COOKIES_SECRET}#g" wrangler.toml
           sed -i "s#\${TURNSTILE_KEY}#${TURNSTILE_KEY}#g" wrangler.toml
           sed -i "s#\${TURNSTILE_SECRET}#${TURNSTILE_SECRET}#g" wrangler.toml
+          sed -i "s#\${INTERNAL_API_KEY}#${INTERNAL_API_KEY}#g" wrangler.toml
         env:
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
           D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
@@ -76,6 +77,7 @@ jobs:
           COOKIES_SECRET: ${{ secrets.COOKIES_SECRET }}
           TURNSTILE_KEY: ${{ secrets.TURNSTILE_KEY }}
           TURNSTILE_SECRET: ${{ secrets.TURNSTILE_SECRET }}
+          INTERNAL_API_KEY: ${{ secrets.INTERNAL_API_KEY }}
       
       # 新增：在部署前应用 D1 数据库迁移
       # 这一步会明确地告诉 Wrangler 远程执行 D1 数据库的迁移脚本。

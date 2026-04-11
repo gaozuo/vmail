@@ -27,8 +27,30 @@ export const apiKeyAuth = async (c: Context<{ Bindings: Env }>, next: Next) => {
     }, 401);
   }
 
-  // 2. 验证 API Key
   const db = getD1DB(c.env.DB);
+
+  // 如果配置了固定内部 API Key，则仅允许该 Key 访问 v1 API。
+  if (c.env.INTERNAL_API_KEY) {
+    if (apiKey !== c.env.INTERNAL_API_KEY) {
+      return c.json({
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Invalid API Key',
+        }
+      }, 401);
+    }
+
+    c.executionCtx.waitUntil(incrementApiCalls(db));
+    c.set('apiKey', {
+      id: 'internal-static-api-key',
+      rateLimit: 1000,
+    });
+
+    await next();
+    return;
+  }
+
+  // 2. 验证 API Key
   const keyRecord = await findApiKeyByKey(db, apiKey);
 
   if (!keyRecord) {

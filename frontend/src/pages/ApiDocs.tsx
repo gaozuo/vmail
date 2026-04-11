@@ -39,6 +39,11 @@ export function ApiDocs() {
 
   // 创建 API Key
   const handleCreateApiKey = async () => {
+    if (!config.apiKeyCreationEnabled) {
+      toast.error(t("API Key creation is disabled"));
+      return;
+    }
+
     if (!turnstileToken) {
       toast.error(t("Please complete the verification first"));
       return;
@@ -100,7 +105,14 @@ export function ApiDocs() {
             {t("Get API Key")}
           </h2>
           <div className="bg-gray-800 rounded-lg p-4">
-            {createdApiKey ? (
+            {!config.apiKeyCreationEnabled ? (
+              <div className="rounded-lg border border-red-500/40 bg-red-950/30 p-4 text-red-100">
+                <p className="font-semibold">{t("API Key creation is disabled")}</p>
+                <p className="mt-2 text-sm text-red-200/80">
+                  {t("This deployment does not allow self-service API Key creation.")}
+                </p>
+              </div>
+            ) : createdApiKey ? (
               // 显示创建的 API Key
               <div>
                 <div className="flex items-center gap-2 mb-3">
